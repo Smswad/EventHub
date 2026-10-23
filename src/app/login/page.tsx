@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { auth } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import {
   Ticket,
@@ -43,12 +44,14 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
+  const isAuthed = Boolean(user || auth.currentUser);
+
   // Redirect to destination if user is already logged in
   useEffect(() => {
-    if (user && !authLoading) {
-      router.push(destination);
+    if (isAuthed && !authLoading) {
+      router.replace(destination);
     }
-  }, [user, authLoading, router, destination]);
+  }, [isAuthed, authLoading, router, destination]);
 
   const mapFirebaseError = (error: any): string => {
     const code = error?.code;
@@ -126,7 +129,7 @@ function LoginForm() {
         await register(name.trim(), email.trim(), password);
         toast.success("Account created successfully! Welcome to EventHub.");
       }
-      router.push(destination);
+      router.replace(destination);
     } catch (err: any) {
       console.error("Auth error:", err);
       toast.error(mapFirebaseError(err));
@@ -139,9 +142,9 @@ function LoginForm() {
     setIsGoogleSubmitting(true);
     try {
       const res = await googleLogin();
-      if (res) {
+      if (res || auth.currentUser) {
         toast.success("Signed in with Google!");
-        router.push(destination);
+        router.replace(destination);
       }
     } catch (err: any) {
       console.error("Google auth error:", err);
@@ -167,12 +170,12 @@ function LoginForm() {
 
   const passwordStrength = getPasswordStrength();
 
-  if (authLoading || user) {
+  if (authLoading || isAuthed) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center gap-3 bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-sm font-medium text-on-surface-variant">
-          {user ? "Redirecting to your dashboard..." : "Loading EventHub..."}
+          {isAuthed ? "Redirecting to your dashboard..." : "Loading EventHub..."}
         </p>
       </div>
     );

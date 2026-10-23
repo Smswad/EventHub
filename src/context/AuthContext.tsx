@@ -98,34 +98,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const register = async (name: string, email: string, password: string): Promise<UserCredential> => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    if (userCredential.user) {
-      await updateProfile(userCredential.user, {
-        displayName: name,
-      });
-      // Force trigger state update with the fresh currentUser so displayName is immediately available
-      if (auth.currentUser) {
-        setUser({ ...auth.currentUser } as User);
-        await syncUserToFirestore(auth.currentUser, { displayName: name });
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: name,
+        });
+        const freshUser = auth.currentUser || userCredential.user;
+        setUser({ ...freshUser } as User);
+        await syncUserToFirestore(freshUser, { displayName: name });
       }
+      return userCredential;
+    } finally {
+      setLoading(false);
     }
-    return userCredential;
   };
 
   const login = async (email: string, password: string): Promise<UserCredential> => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    if (userCredential.user) {
-      await syncUserToFirestore(userCredential.user);
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      if (userCredential.user) {
+        setUser(userCredential.user);
+        await syncUserToFirestore(userCredential.user);
+      }
+      return userCredential;
+    } finally {
+      setLoading(false);
     }
-    return userCredential;
   };
 
   const googleLogin = async (): Promise<UserCredential | void> => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
     try {
+      setLoading(true);
       const result = await signInWithPopup(auth, provider);
       if (result.user) {
+        setUser(result.user);
         await syncUserToFirestore(result.user);
       }
       return result;
@@ -136,6 +147,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
