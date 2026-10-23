@@ -14,7 +14,34 @@ import {
   updateProfile,
   UserCredential,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+
+export const syncUserToFirestore = async (
+  firebaseUser: User,
+  additionalData?: { displayName?: string; role?: string }
+) => {
+  if (!firebaseUser?.uid) return;
+  try {
+    const userDocRef = doc(db, "users", firebaseUser.uid);
+    await setDoc(
+      userDocRef,
+      {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email || "",
+        displayName: additionalData?.displayName || firebaseUser.displayName || "Event Organizer",
+        photoURL: firebaseUser.photoURL || null,
+        role: additionalData?.role || "organizer",
+        lastLoginAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+    console.log("Successfully recorded user in Firestore users collection:", firebaseUser.uid);
+  } catch (err: any) {
+    console.warn("Could not save user to Firestore (check Firestore security rules):", err?.message);
+  }
+};
 
 interface AuthContextType {
   user: User | null;
@@ -52,6 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       .then((result) => {
         if (result?.user) {
           setUser(result.user);
+          syncUserToFirestore(result.user);
         }
       })
       .catch((err) => {
@@ -61,6 +89,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+      if (currentUser) {
+        syncUserToFirestore(currentUser);
+      }
     });
 
     return () => unsubscribe();
@@ -75,26 +106,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Force trigger state update with the fresh currentUser so displayName is immediately available
       if (auth.currentUser) {
         setUser({ ...auth.currentUser } as User);
+        await syncUserToFirestore(auth.currentUser, { displayName: name });
       }
     }
     return userCredential;
   };
 
   const login = async (email: string, password: string): Promise<UserCredential> => {
-    return await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    if (userCredential.user) {
+      await syncUserToFirestore(userCredential.user);
+    }
+    return userCredential;
   };
 
   const googleLogin = async (): Promise<UserCredential | void> => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
     try {
-      return await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      if (result.user) {
+        await syncUserToFirestore(result.user);
+      }
+      return result;
     } catch (error: any) {
-      if (
-        error?.code === "auth/popup-blocked" ||
-        error?.code === "auth/cancelled-popup-request"
-      ) {
-        console.warn("Popup blocked or cancelled, falling back to signInWithRedirect...");
+      if (error?.code === "auth/popup-blocked") {
+        console.warn("Popup blocked by browser, falling back to signInWithRedirect...");
         await signInWithRedirect(auth, provider);
         return;
       }

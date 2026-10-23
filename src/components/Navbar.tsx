@@ -125,18 +125,21 @@ export default function Navbar() {
           >
             Events
           </Link>
-          {user && (
-            <Link
-              href="/items/manage"
-              className={`font-label-lg text-label-lg transition-colors ${
-                pathname === "/items/manage"
-                  ? "text-primary font-bold"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            >
-              Manage Events
-            </Link>
-          )}
+          <Link
+            href="/items/manage"
+            className={`font-label-lg text-label-lg transition-colors inline-flex items-center gap-1.5 ${
+              pathname === "/items/manage"
+                ? "text-primary font-bold"
+                : "text-on-surface-variant hover:text-on-surface"
+            }`}
+          >
+            <span>Manage Events</span>
+            {!user && (
+              <span className="text-[10px] bg-surface-container-high text-on-surface-variant px-1.5 py-0.5 rounded font-medium">
+                Private
+              </span>
+            )}
+          </Link>
           <Link
             href="/about"
             className={`font-label-lg text-label-lg transition-colors ${
@@ -268,8 +271,16 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            /* Logged-Out Actions matching Stitch Landing screen */
+            /* Logged-Out Actions */
             <div className="hidden sm:flex items-center gap-space-sm">
+              <Link
+                href="/items/add"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant/40 hover:bg-surface-container text-xs font-semibold text-on-surface transition-colors"
+                title="Host an event (Protected route - redirects to login)"
+              >
+                <PlusCircle className="h-3.5 w-3.5 text-secondary" />
+                <span>Host Event</span>
+              </Link>
               <Link
                 href="/login"
                 className="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface px-space-md py-space-xs rounded-lg transition-colors font-semibold"
@@ -329,6 +340,22 @@ export default function Navbar() {
               }`}
             >
               Events
+            </Link>
+            <Link
+              href="/items/manage"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`px-3 py-2 rounded-lg font-label-lg text-label-lg transition-colors flex items-center justify-between ${
+                pathname === "/items/manage"
+                  ? "bg-primary-fixed/30 text-primary font-bold"
+                  : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+              }`}
+            >
+              <span>Manage Events</span>
+              {!user && (
+                <span className="text-[10px] bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant">
+                  Private
+                </span>
+              )}
             </Link>
             <Link
               href="/about"

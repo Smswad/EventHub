@@ -77,10 +77,10 @@ export default function ManageEventsPage() {
     return events.filter((e) => e.createdBy === user.uid);
   }, [events, user]);
 
-  // If user has no created events, default viewScope to "all" so they see demo data, but allow switching
+  // If user has no created events, default to showing platform catalog so they have a rich experience
   const scopedEvents = useMemo(() => {
     if (viewScope === "my") {
-      return userEvents;
+      return userEvents.length > 0 ? userEvents : events;
     }
     return events;
   }, [viewScope, userEvents, events]);
@@ -242,11 +242,19 @@ export default function ManageEventsPage() {
             </nav>
 
             {/* Page Header */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-6">
               <div className="space-y-2 max-w-2xl">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-xs font-bold uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  Host Operations Suite
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-xs font-bold uppercase tracking-wider">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    Host Operations Suite
+                  </div>
+                  {user && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed/50 text-secondary text-xs font-semibold">
+                      <span>Logged in:</span>
+                      <span className="font-bold">{user.displayName || user.email}</span>
+                    </div>
+                  )}
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-on-surface tracking-tight">
                   Manage Events
@@ -291,6 +299,30 @@ export default function ManageEventsPage() {
                 </Link>
               </div>
             </div>
+
+            {/* If user hasn't published an event yet, show a welcoming guide banner */}
+            {!loading && userEvents.length === 0 && (
+              <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-4 sm:p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-on-surface">You are in your Private Organizer Dashboard</h2>
+                    <p className="text-xs text-on-surface-variant mt-0.5">
+                      You haven&apos;t published your own events yet. We&apos;ve loaded the full platform catalog below so you can test all operations (View, Delete, Filter, KPI metrics), or click <span className="font-semibold text-primary">Create New Event</span> to publish your own.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/items/add"
+                  className="shrink-0 px-4 py-2 bg-secondary text-on-secondary rounded-xl text-xs font-bold hover:bg-secondary/90 transition-all flex items-center gap-1.5 shadow-xs"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Host New Event</span>
+                </Link>
+              </div>
+            )}
 
             {/* Live KPI Stat Cards Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

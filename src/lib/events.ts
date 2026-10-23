@@ -21,26 +21,74 @@ const fallbackEvents: Event[] = initialSeedEvents.map((eventData, idx) => ({
   ...eventData,
 }));
 
+const LOCAL_STORAGE_KEY = "eventhub_custom_events";
+
+function getLocalEvents(): Event[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalEvent(event: Event): void {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = getLocalEvents();
+    const updated = [event, ...existing.filter((e) => e.id !== event.id)];
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.warn("Could not save to localStorage:", e);
+  }
+}
+
+function removeLocalEvent(id: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = getLocalEvents();
+    const updated = existing.filter((e) => e.id !== id);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.warn("Could not remove from localStorage:", e);
+  }
+}
+
 export async function getEvents(): Promise<Event[]> {
+  const localList = getLocalEvents();
+  let firestoreEvents: Event[] = [];
+
   try {
     const eventsCol = collection(db, COLLECTION_NAME);
     const snapshot = await getDocs(eventsCol);
 
-    if (snapshot.empty) {
-      return fallbackEvents;
+    if (!snapshot.empty) {
+      firestoreEvents = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<Event, "id">),
+      }));
     }
-
-    return snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<Event, "id">),
-    }));
   } catch (error) {
-    console.warn("Could not query Firestore events collection, using seed events:", error);
-    return fallbackEvents;
+    console.warn("Could not query Firestore events collection, using fallback catalog:", error);
   }
+
+  // Base list is Firestore if populated, otherwise fallback seed events
+  const baseList = firestoreEvents.length > 0 ? firestoreEvents : fallbackEvents;
+
+  // Merge local custom events (prevent duplicates)
+  const baseIds = new Set(baseList.map((e) => e.id));
+  const uniqueLocal = localList.filter((e) => !baseIds.has(e.id));
+
+  return [...uniqueLocal, ...baseList];
 }
 
 export async function getEventById(id: string): Promise<Event | null> {
+  // Check local events first
+  const localList = getLocalEvents();
+  const localFound = localList.find((e) => e.id === id);
+  if (localFound) return localFound;
+
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
@@ -61,20 +109,34 @@ export async function getEventById(id: string): Promise<Event | null> {
 }
 
 export async function addEvent(eventData: Omit<Event, "id">): Promise<string> {
+  let createdId = `event-local-${Date.now()}`;
+
   try {
     const eventsCol = collection(db, COLLECTION_NAME);
     const docRef = await addDoc(eventsCol, eventData);
-    return docRef.id;
+    createdId = docRef.id;
+    console.log("Successfully wrote event to Cloud Firestore with ID:", createdId);
   } catch (error) {
-    console.warn("Firestore addDoc failed, creating in-memory event id:", error);
-    return `event-local-${Date.now()}`;
+    console.warn("Firestore addDoc failed (check security rules), caching locally:", error);
   }
+
+  // Always cache locally so the user immediately sees it in their dashboard
+  saveLocalEvent({
+    id: createdId,
+    ...eventData,
+  });
+
+  return createdId;
 }
 
 export async function deleteEvent(id: string): Promise<void> {
+  // Remove from local cache
+  removeLocalEvent(id);
+
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(docRef);
+    console.log("Successfully deleted event from Cloud Firestore:", id);
   } catch (error) {
     console.warn(`Firestore deleteDoc failed for id ${id}:`, error);
   }
