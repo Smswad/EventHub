@@ -36,7 +36,7 @@ export default function ItemCard({ event }: ItemCardProps) {
             {event.title}
           </h3>
           <p className="text-sm text-on-surface-variant line-clamp-2 mt-1">
-            {event.shortDescription || event.description}
+            {event.shortDescription || event.fullDescription}
           </p>
           <div className="flex items-center gap-1.5 text-xs text-on-surface-variant mt-2">
             <MapPin className="h-3.5 w-3.5" />

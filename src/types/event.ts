@@ -1,20 +1,28 @@
-export interface EventItem {
+export type EventCategory =
+  | "Conference"
+  | "Concert"
+  | "Workshop"
+  | "Wedding"
+  | "Sports"
+  | "Networking";
+
+export interface Event {
   id: string;
   title: string;
-  shortDescription?: string;
-  description: string;
-  category: "conference" | "concert" | "workshop" | "wedding" | "sports" | "networking" | string;
-  organizerName: string;
-  organizerEmail?: string;
-  date: string; // ISO string or formatted date
-  time?: string;
+  shortDescription: string;
+  fullDescription: string;
+  category: EventCategory;
+  price: number; // 0 = free
+  date: string; // ISO
   location: string;
-  price: number;
+  imageUrl: string;
+  rating: number; // 1-5
+  organizer: string;
   capacity: number;
-  imageUrl?: string;
-  featured?: boolean;
-  status?: "active" | "draft" | "completed";
-  ticketsSold?: number;
-  createdAt?: string;
-  updatedAt?: string;
+  specifications: string[];
+  createdBy: string; // uid
+  createdAt: string;
 }
+
+// Alias for backwards compatibility if needed
+export type EventItem = Event;
