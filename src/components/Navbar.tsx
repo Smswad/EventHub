@@ -205,7 +205,10 @@ export default function Navbar() {
                       }`}
                     >
                       <PlusCircle className="h-5 w-5 text-primary" />
-                      <span>Add Event</span>
+                      <div className="flex flex-col">
+                        <span>Add Event</span>
+                        <span className="text-[10px] text-on-surface-variant/70 -mt-0.5 font-medium">Add Product</span>
+                      </div>
                     </Link>
 
                     <Link
@@ -219,7 +222,10 @@ export default function Navbar() {
                       }`}
                     >
                       <CalendarCheck className="h-5 w-5 text-on-surface-variant" />
-                      <span>Manage Events</span>
+                      <div className="flex flex-col">
+                        <span>Manage Events</span>
+                        <span className="text-[10px] text-on-surface-variant/70 -mt-0.5 font-medium">Manage Products</span>
+                      </div>
                     </Link>
                   </div>
 
@@ -344,7 +350,7 @@ export default function Navbar() {
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-primary hover:bg-primary-fixed/30 transition-colors"
                 >
                   <PlusCircle className="h-4 w-4" />
-                  <span>Add Event</span>
+                  <span>Add Event (Add Product)</span>
                 </Link>
 
                 <Link
@@ -353,7 +359,7 @@ export default function Navbar() {
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors"
                 >
                   <CalendarCheck className="h-4 w-4" />
-                  <span>Manage Events</span>
+                  <span>Manage Events (Manage Products)</span>
                 </Link>
 
                 <button

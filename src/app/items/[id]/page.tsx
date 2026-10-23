@@ -84,7 +84,7 @@ export default async function ItemDetailsPage({ params }: PageProps) {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-xs sm:text-sm transition-colors group shadow-xs border border-outline-variant/30"
           >
             <ArrowLeft className="h-4 w-4 text-on-surface-variant group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Events</span>
+            <span>Back to Items</span>
           </Link>
           <div className="hidden sm:flex items-center gap-2 text-on-surface-variant text-xs sm:text-sm truncate">
             <span>/</span>
