@@ -139,17 +139,21 @@ function LoginForm() {
   };
 
   const handleGoogleSignIn = async () => {
-    setIsGoogleSubmitting(true);
     try {
+      // Do not disable the button before opening popup, as Chromium invalidates user gesture on disabled targets
       const res = await googleLogin();
+      setIsGoogleSubmitting(true);
       if (res?.user || auth.currentUser) {
         toast.success("Signed in with Google!");
         router.replace(destination);
       }
     } catch (err: any) {
+      setIsGoogleSubmitting(false);
       console.error("Google auth error:", err);
-      if (err?.code === "auth/popup-blocked") {
-        toast.error("Popup was blocked by your browser! Click the popup blocker icon in the browser address bar to allow popups for this site.", {
+      if (err?.code === "auth/popup-closed-by-user") {
+        toast("Sign-in popup was closed before completing.", { icon: "ℹ️" });
+      } else if (err?.code === "auth/popup-blocked") {
+        toast.error("Popup window was blocked by your browser. Please allow popups for this site and try again.", {
           duration: 6000,
         });
       } else {
