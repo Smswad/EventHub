@@ -6,7 +6,7 @@ EventHub is a modern, responsive full-stack event discovery and ticketing platfo
 
 ## Links
 
-- **Live Demo:** [https://eventhub.vercel.app](https://eventhub.vercel.app) *(Replace with your live deployment URL)*
+- **Live Demo:** [https://eventhub-smswad.vercel.app/](https://eventhub-smswad.vercel.app/)
 - **GitHub Repository:** [https://github.com/Smswad/EventHub](https://github.com/Smswad/EventHub)
 
 ---
