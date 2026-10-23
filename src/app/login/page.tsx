@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
@@ -23,8 +23,12 @@ import {
 
 type AuthMode = "login" | "register";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+  const destination = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/items/manage";
+
   const { user, loading: authLoading, login, register, googleLogin } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>("login");
@@ -39,12 +43,12 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
-  // Redirect to "/" if user is already logged in
+  // Redirect to destination if user is already logged in
   useEffect(() => {
     if (user && !authLoading) {
-      router.push("/");
+      router.push(destination);
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, destination]);
 
   const mapFirebaseError = (error: any): string => {
     const code = error?.code;
@@ -122,7 +126,7 @@ export default function LoginPage() {
         await register(name.trim(), email.trim(), password);
         toast.success("Account created successfully! Welcome to EventHub.");
       }
-      router.push("/");
+      router.push(destination);
     } catch (err: any) {
       console.error("Auth error:", err);
       toast.error(mapFirebaseError(err));
@@ -137,7 +141,7 @@ export default function LoginPage() {
       const res = await googleLogin();
       if (res) {
         toast.success("Signed in with Google!");
-        router.push("/");
+        router.push(destination);
       }
     } catch (err: any) {
       console.error("Google auth error:", err);
@@ -163,10 +167,13 @@ export default function LoginPage() {
 
   const passwordStrength = getPasswordStrength();
 
-  if (authLoading) {
+  if (authLoading || user) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-background">
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center gap-3 bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm font-medium text-on-surface-variant">
+          {user ? "Redirecting to your dashboard..." : "Loading EventHub..."}
+        </p>
       </div>
     );
   }
@@ -536,5 +543,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-background">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

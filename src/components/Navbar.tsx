@@ -125,6 +125,18 @@ export default function Navbar() {
           >
             Events
           </Link>
+          {user && (
+            <Link
+              href="/items/manage"
+              className={`font-label-lg text-label-lg transition-colors ${
+                pathname === "/items/manage"
+                  ? "text-primary font-bold"
+                  : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              Manage Events
+            </Link>
+          )}
           <Link
             href="/about"
             className={`font-label-lg text-label-lg transition-colors ${
@@ -146,8 +158,18 @@ export default function Navbar() {
         {/* Right Action Area */}
         <div className="flex items-center gap-space-sm">
           {user ? (
-            /* Logged-In User Dropdown matching Stitch Add Event screen */
-            <div className="relative flex items-center" ref={userMenuRef}>
+            <div className="flex items-center gap-3">
+              {/* Host Event Button matching Stitch */}
+              <Link
+                href="/items/add"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-secondary-container text-on-secondary-container font-semibold text-xs shadow-xs hover:bg-secondary hover:text-on-secondary transition-all"
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span>Host Event</span>
+              </Link>
+
+              {/* Logged-In User Dropdown matching Stitch Add Event screen */}
+              <div className="relative flex items-center" ref={userMenuRef}>
               <button
                 type="button"
                 id="user-menu-button"
@@ -243,6 +265,7 @@ export default function Navbar() {
                   </div>
                 </div>
               )}
+              </div>
             </div>
           ) : (
             /* Logged-Out Actions matching Stitch Landing screen */
