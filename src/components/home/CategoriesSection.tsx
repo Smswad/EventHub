@@ -63,7 +63,7 @@ export default function CategoriesSection() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 md:mb-14 gap-4">
           <div>
             <span className="text-xs uppercase tracking-wider text-secondary font-bold mb-2 block">
-              EXPLORE BY INTEREST
+              CURATED SELECTIONS
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">
               Browse by Category

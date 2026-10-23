@@ -12,9 +12,9 @@ export default function HeroSection() {
         
         {/* Trust badge row */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container-lowest shadow-sm mb-6 border border-outline-variant/30 animate-in fade-in duration-300">
-          <div className="flex items-center text-secondary">
+          <div className="flex items-center text-secondary-container">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-4 w-4 fill-secondary text-secondary" />
+              <Star key={i} className="h-4 w-4 fill-secondary-container text-secondary-container" />
             ))}
           </div>
           <span className="font-semibold text-xs text-on-surface">4.9/5 satisfaction</span>
@@ -25,9 +25,8 @@ export default function HeroSection() {
         {/* Main Headline */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-on-surface max-w-4xl tracking-tight mb-5 leading-[1.15]">
           Discover Unforgettable Experiences & Host{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-secondary">
-            World-Class Events
-          </span>
+          <span className="text-primary-container">World-Class</span>{" "}
+          <span className="text-secondary-container">Events</span>
         </h1>
 
         {/* Subtitle */}

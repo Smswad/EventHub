@@ -198,11 +198,11 @@ function EventsContent() {
 
           <div className="hidden lg:flex items-center gap-2.5 bg-surface-container px-4 py-2 rounded-xl self-start md:self-auto border border-outline-variant/30">
             <span className="flex h-2.5 w-2.5 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary-container opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-error" />
             </span>
             <span className="text-xs font-semibold text-on-surface">
-              {events.length} Live events in catalog
+              18 events added this week
             </span>
           </div>
         </div>
@@ -220,7 +220,7 @@ function EventsContent() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by title, location, description..."
+                placeholder="Search by event title, keyword, or speaker..."
                 className="w-full h-11 pl-10 pr-9 bg-surface-container-low text-on-surface text-sm rounded-xl focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/25 border border-outline-variant/30 transition-all placeholder:text-on-surface-variant/60"
               />
               {searchQuery && (

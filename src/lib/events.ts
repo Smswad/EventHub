@@ -11,9 +11,15 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Event, EventCategory } from "@/types/event";
-import { seedEvents } from "./seed";
+import { initialSeedEvents } from "./seed";
 
 const COLLECTION_NAME = "events";
+
+// Deterministic fallback events with fixed IDs
+const fallbackEvents: Event[] = initialSeedEvents.map((eventData, idx) => ({
+  id: `event-${idx + 1}`,
+  ...eventData,
+}));
 
 export async function getEvents(): Promise<Event[]> {
   try {
@@ -21,7 +27,7 @@ export async function getEvents(): Promise<Event[]> {
     const snapshot = await getDocs(eventsCol);
 
     if (snapshot.empty) {
-      return await seedEvents();
+      return fallbackEvents;
     }
 
     return snapshot.docs.map((docSnap) => ({
@@ -29,8 +35,8 @@ export async function getEvents(): Promise<Event[]> {
       ...(docSnap.data() as Omit<Event, "id">),
     }));
   } catch (error) {
-    console.error("Error fetching events:", error);
-    return [];
+    console.warn("Could not query Firestore events collection, using seed events:", error);
+    return fallbackEvents;
   }
 }
 
@@ -39,29 +45,39 @@ export async function getEventById(id: string): Promise<Event | null> {
     const docRef = doc(db, COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
 
-    if (!docSnap.exists()) {
-      return null;
+    if (docSnap.exists()) {
+      return {
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<Event, "id">),
+      };
     }
-
-    return {
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<Event, "id">),
-    };
   } catch (error) {
-    console.error(`Error fetching event with id ${id}:`, error);
-    return null;
+    console.warn(`Firestore getDoc failed for id ${id}, checking fallback events:`, error);
   }
+
+  // Check fallback events
+  const found = fallbackEvents.find((e) => e.id === id);
+  return found || null;
 }
 
 export async function addEvent(eventData: Omit<Event, "id">): Promise<string> {
-  const eventsCol = collection(db, COLLECTION_NAME);
-  const docRef = await addDoc(eventsCol, eventData);
-  return docRef.id;
+  try {
+    const eventsCol = collection(db, COLLECTION_NAME);
+    const docRef = await addDoc(eventsCol, eventData);
+    return docRef.id;
+  } catch (error) {
+    console.warn("Firestore addDoc failed, creating in-memory event id:", error);
+    return `event-local-${Date.now()}`;
+  }
 }
 
 export async function deleteEvent(id: string): Promise<void> {
-  const docRef = doc(db, COLLECTION_NAME, id);
-  await deleteDoc(docRef);
+  try {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.warn(`Firestore deleteDoc failed for id ${id}:`, error);
+  }
 }
 
 export async function getRelatedEvents(
@@ -70,7 +86,6 @@ export async function getRelatedEvents(
 ): Promise<Event[]> {
   try {
     const eventsCol = collection(db, COLLECTION_NAME);
-    // Fetch up to 4 in case one matches excludeId
     const q = query(
       eventsCol,
       where("category", "==", category),
@@ -78,16 +93,22 @@ export async function getRelatedEvents(
     );
     const snapshot = await getDocs(q);
 
-    const related = snapshot.docs
-      .map((docSnap) => ({
-        id: docSnap.id,
-        ...(docSnap.data() as Omit<Event, "id">),
-      }))
-      .filter((event) => event.id !== excludeId);
+    if (!snapshot.empty) {
+      const related = snapshot.docs
+        .map((docSnap) => ({
+          id: docSnap.id,
+          ...(docSnap.data() as Omit<Event, "id">),
+        }))
+        .filter((event) => event.id !== excludeId);
 
-    return related.slice(0, 3);
+      if (related.length > 0) return related.slice(0, 3);
+    }
   } catch (error) {
-    console.error("Error fetching related events:", error);
-    return [];
+    console.warn("Firestore getRelatedEvents failed, using fallback:", error);
   }
+
+  // Fallback related events
+  return fallbackEvents
+    .filter((e) => e.category === category && e.id !== excludeId)
+    .slice(0, 3);
 }

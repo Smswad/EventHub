@@ -16,7 +16,7 @@ export default function CalloutBanner() {
             {/* Pill Tag */}
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container-lowest/15 backdrop-blur-sm text-xs text-secondary-fixed mb-5 uppercase tracking-wider font-bold">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Scale Your Community</span>
+              <span>SCALABLE OPERATIONS</span>
             </span>
 
             {/* Headline */}
@@ -39,7 +39,7 @@ export default function CalloutBanner() {
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <span className="text-xs text-on-primary-container/80 mt-1">
-                No credit card required • Setup in under 5 minutes
+                No credit card required • Instant setup in 2 minutes
               </span>
             </div>
 

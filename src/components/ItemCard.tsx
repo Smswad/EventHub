@@ -1,7 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Event } from "@/types/event";
-import { Calendar, MapPin, ArrowRight, Star } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  ArrowRight,
+  Star,
+  Presentation,
+  Headphones,
+  GraduationCap,
+  Heart,
+  Trophy,
+  Users,
+} from "lucide-react";
 
 interface ItemCardProps {
   event: Event;
@@ -20,6 +31,25 @@ export default function ItemCard({ event }: ItemCardProps) {
       });
     } catch {
       return dateStr;
+    }
+  };
+
+  const getCategoryIcon = (cat: string) => {
+    switch ((cat || "").toLowerCase()) {
+      case "conference":
+        return <Presentation className="h-3 w-3" />;
+      case "concert":
+        return <Headphones className="h-3 w-3" />;
+      case "workshop":
+        return <GraduationCap className="h-3 w-3" />;
+      case "wedding":
+        return <Heart className="h-3 w-3" />;
+      case "sports":
+        return <Trophy className="h-3 w-3" />;
+      case "networking":
+        return <Users className="h-3 w-3" />;
+      default:
+        return null;
     }
   };
 
@@ -43,6 +73,7 @@ export default function ItemCard({ event }: ItemCardProps) {
 
         {/* Category Badge */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-primary-container text-on-primary px-2.5 py-1 rounded-full shadow-sm text-[11px] font-bold uppercase tracking-wider">
+          {getCategoryIcon(event.category)}
           <span>{event.category}</span>
         </div>
 
