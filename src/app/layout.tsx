@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-background text-on-surface">
+      <body className="min-h-screen flex flex-col bg-background text-on-surface">
         <AuthProvider>
           <Toaster
             position="top-right"
@@ -52,9 +52,11 @@ export default function RootLayout({
               },
             }}
           />
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
         </AuthProvider>
       </body>
     </html>
