@@ -72,7 +72,9 @@ export default function LoginPage() {
       case "auth/cancelled-popup-request":
         return "Sign-in operation was cancelled.";
       case "auth/popup-blocked":
-        return "Popup was blocked by your browser. Please allow popups for EventHub.";
+        return "Popup was blocked. Redirecting to Google...";
+      case "auth/unauthorized-domain":
+        return "Domain not authorized: Please add your domain (e.g. eventhub-smswad.vercel.app) to Firebase Console > Authentication > Settings > Authorized domains.";
       case "auth/account-exists-with-different-credential":
         return "An account already exists with this email using another sign-in method.";
       default:
@@ -132,9 +134,11 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setIsGoogleSubmitting(true);
     try {
-      await googleLogin();
-      toast.success("Signed in with Google!");
-      router.push("/");
+      const res = await googleLogin();
+      if (res) {
+        toast.success("Signed in with Google!");
+        router.push("/");
+      }
     } catch (err: any) {
       console.error("Google auth error:", err);
       toast.error(mapFirebaseError(err));

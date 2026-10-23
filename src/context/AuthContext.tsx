@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   updateProfile,
@@ -19,7 +21,7 @@ interface AuthContextType {
   loading: boolean;
   register: (name: string, email: string, password: string) => Promise<UserCredential>;
   login: (email: string, password: string) => Promise<UserCredential>;
-  googleLogin: () => Promise<UserCredential>;
+  googleLogin: () => Promise<UserCredential | void>;
   logout: () => Promise<void>;
   signOut: () => Promise<void>; // Alias for backwards compatibility
 }
@@ -45,6 +47,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check if returning from a redirect sign-in
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          setUser(result.user);
+        }
+      })
+      .catch((err) => {
+        console.error("Redirect sign-in error:", err);
+      });
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
@@ -71,10 +84,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const googleLogin = async (): Promise<UserCredential> => {
+  const googleLogin = async (): Promise<UserCredential | void> => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
-    return await signInWithPopup(auth, provider);
+    try {
+      return await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      if (
+        error?.code === "auth/popup-blocked" ||
+        error?.code === "auth/cancelled-popup-request"
+      ) {
+        console.warn("Popup blocked or cancelled, falling back to signInWithRedirect...");
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+      throw error;
+    }
   };
 
   const logout = async (): Promise<void> => {
