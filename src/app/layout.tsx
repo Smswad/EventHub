@@ -14,6 +14,15 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "EventHub — Discover & Host World-Class Events",
   description: "EventHub is the premier ecosystem to discover, host, and celebrate extraordinary events.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({
