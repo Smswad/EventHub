@@ -142,13 +142,21 @@ function LoginForm() {
     setIsGoogleSubmitting(true);
     try {
       const res = await googleLogin();
-      if (res || auth.currentUser) {
+      if (res?.user || auth.currentUser) {
         toast.success("Signed in with Google!");
         router.replace(destination);
       }
     } catch (err: any) {
       console.error("Google auth error:", err);
-      toast.error(mapFirebaseError(err));
+      if (err?.code === "auth/popup-blocked") {
+        toast.error("Popup was blocked by your browser! Click the popup blocker icon in the browser address bar to allow popups for this site.", {
+          duration: 6000,
+        });
+      } else {
+        toast.error(mapFirebaseError(err), {
+          duration: 6000,
+        });
+      }
     } finally {
       setIsGoogleSubmitting(false);
     }

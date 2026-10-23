@@ -48,7 +48,7 @@ interface AuthContextType {
   loading: boolean;
   register: (name: string, email: string, password: string) => Promise<UserCredential>;
   login: (email: string, password: string) => Promise<UserCredential>;
-  googleLogin: () => Promise<UserCredential | void>;
+  googleLogin: () => Promise<UserCredential>;
   logout: () => Promise<void>;
   signOut: () => Promise<void>; // Alias for backwards compatibility
 }
@@ -129,11 +129,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const googleLogin = async (): Promise<UserCredential | void> => {
+  const googleLogin = async (): Promise<UserCredential> => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
     try {
-      setLoading(true);
+      // Open popup directly within user gesture without pre-state delays
       const result = await signInWithPopup(auth, provider);
       if (result.user) {
         setUser(result.user);
@@ -141,14 +141,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       return result;
     } catch (error: any) {
-      if (error?.code === "auth/popup-blocked") {
-        console.warn("Popup blocked by browser, falling back to signInWithRedirect...");
-        await signInWithRedirect(auth, provider);
-        return;
-      }
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
